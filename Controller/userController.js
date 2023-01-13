@@ -1,22 +1,29 @@
-const express = require("express");
-const { createUser, findOneUserByEmail, findOneUserByGoogleEmail } = require("../Service/userService");
+const express = require('express')
+const {
+  createUser,
+  findOneUserByEmailLoginType,
+} = require('../Service/userService')
 
+const router = new express.Router()
 
-const router = new express.Router();
-
-
-router.get("/", (req, res) => {
-    // console.log("######", req.query)
-    findOneUserByGoogleEmail(req, res);
+router.get('/', (req, res) => {
+  console.log(findOneUserByEmailLoginType(req, res))
 })
 
-
-router.post("/", (req, res) => {
-    createUser(req, res);
+router.post('/', (req, res) => {
+  createUser(req, res)
 })
 
+/**
+ * @body refreshToken
+ * @return accessToken
+ */
+router.post('/access-token', (req, res) => {
+    
+})
 
+router.post('/login', (req, res) => {
 
+})
 
-
-module.exports = router;
+module.exports = router
