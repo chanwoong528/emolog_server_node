@@ -7,6 +7,7 @@ const compareText = process.env.BCRYPT_COMPARE_TEXT
 const jwtSecret = process.env.JWT_SECRET
 
 const db = require('../Model')
+const { generateTokens } = require('../util/keyGenerator')
 const User = db.user
 const Op = db.Sequelize.Op
 
@@ -28,24 +29,10 @@ exports.createUser = (req, res) => {
       }
 
       User.create(user).then((userData) => {
-        let accessToken = jwt.sign(
-          {
-            data: userData.user_id,
-          },
-          jwtSecret,
-          { expiresIn: 60 * 60 },
-        )
-        let refreshToken = jwt.sign(
-          {
-            data: userData.user_id + userData.login_type + userData.platform,
-          },
-          jwtSecret,
-          { expiresIn: '365d' },
-        )
         return res.status(201).send({
           message: 'new user created',
           code: 201,
-          data: { accessToken, refreshToken },
+          data: generateTokens(userData),
           userInfo: {
             userId: userData.user_id,
             name: userData.name,
@@ -60,7 +47,33 @@ exports.createUser = (req, res) => {
     }
   })
 }
-//Service
+
+exports.findOneUserByAcc = (req, res) => {
+  try {
+    let decoded = jwt.verify(req.body.accessToken, jwtSecret)
+    if (decoded.data) {
+      User.findOne({ where: { user_id: decoded.data } }).then((userData) => {
+        return res.status(200).send({
+          message: 'make user login with Access token',
+          code: 200,
+          data: generateTokens(userData),
+          userInfo: {
+            userId: userData.user_id,
+            name: userData.name,
+            email: userData.email,
+            loginType: userData.login_type,
+            platform: userData.platform,
+            verified: userData.verified,
+            active: userData.active,
+          },
+        })
+      })
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 exports.findOneUserByEmailLoginType = (req, res) => {
   const reqUserInfo = {
     email: req.query.email,
@@ -70,7 +83,20 @@ exports.findOneUserByEmailLoginType = (req, res) => {
     where: { email: reqUserInfo.email, login_type: reqUserInfo.login_type },
   }).then((userData) => {
     if (userData) {
-      return res.status(200).send({ message: 'user exist login', code: 200 })
+      return res.status(200).send({
+        message: 'user exist login',
+        code: 200,
+        data: generateTokens(userData),
+        userInfo: {
+          userId: userData.user_id,
+          name: userData.name,
+          email: userData.email,
+          loginType: userData.login_type,
+          platform: userData.platform,
+          verified: userData.verified,
+          active: userData.active,
+        },
+      })
     } else {
       return res
         .status(200)
@@ -78,5 +104,3 @@ exports.findOneUserByEmailLoginType = (req, res) => {
     }
   })
 }
-
-
