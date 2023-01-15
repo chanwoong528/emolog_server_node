@@ -8,7 +8,7 @@ const {
 const router = new express.Router()
 
 router.get('/', (req, res) => {
-  console.log(findOneUserByEmailLoginType(req, res))
+  findOneUserByEmailLoginType(req, res)
 })
 
 router.post('/', (req, res) => {

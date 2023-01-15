@@ -8,11 +8,11 @@ function generateTokens(userData) {
       data: userData.user_id,
     },
     jwtSecret,
-    { expiresIn: 60 * 60 },
+    { expiresIn: 60 * 30 },
   )
   let refreshToken = jwt.sign(
     {
-      data: userData.user_id + userData.login_type + userData.platform,
+      data: userData.user_id,
     },
     jwtSecret,
     { expiresIn: '365d' },

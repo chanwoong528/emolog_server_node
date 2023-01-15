@@ -3,6 +3,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const userController = require("./Controller/userController")
+const diaryController = require("./Controller/diaryController")
 
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(cookieParser());
 
 // ** Controllers
 app.use("/user", userController)
+app.use("/diary", diaryController)
 
 // ** Controllers
 

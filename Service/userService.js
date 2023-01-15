@@ -7,9 +7,9 @@ const compareText = process.env.BCRYPT_COMPARE_TEXT
 const jwtSecret = process.env.JWT_SECRET
 
 const db = require('../Model')
-const { generateTokens } = require('../util/keyGenerator')
 const User = db.user
 const Op = db.Sequelize.Op
+const { generateTokens } = require('../util/keyGenerator')
 
 exports.createUser = (req, res) => {
   const hashedPw = bcrypt.hash(hashText, parseInt(saltRounds), function (
@@ -50,9 +50,10 @@ exports.createUser = (req, res) => {
 
 exports.findOneUserByAcc = (req, res) => {
   try {
-    let decoded = jwt.verify(req.body.accessToken, jwtSecret)
-    if (decoded.data) {
-      User.findOne({ where: { user_id: decoded.data } }).then((userData) => {
+    let decodedAcc = jwt.verify(req.body.accessToken, jwtSecret)
+
+    if (decodedAcc.data) {
+      User.findOne({ where: { user_id: decodedAcc.data } }).then((userData) => {
         return res.status(200).send({
           message: 'make user login with Access token',
           code: 200,
@@ -70,7 +71,25 @@ exports.findOneUserByAcc = (req, res) => {
       })
     }
   } catch (error) {
-    console.log(error)
+      if (error.message === 'jwt expired') {
+      let decodedRef = jwt.verify(req.body.refreshToken, jwtSecret)
+      User.findOne({ where: { user_id: decodedRef.data } }).then((userData) => {
+        return res.status(200).send({
+          message: 'make user login with Access token',
+          code: 200,
+          data: generateTokens(userData),
+          userInfo: {
+            userId: userData.user_id,
+            name: userData.name,
+            email: userData.email,
+            loginType: userData.login_type,
+            platform: userData.platform,
+            verified: userData.verified,
+            active: userData.active,
+          },
+        })
+      })
+    }
   }
 }
 
