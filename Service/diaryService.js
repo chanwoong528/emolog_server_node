@@ -21,6 +21,11 @@ exports.createDiary = (req, res) => {
       return res.status(201).send({
         message: 'Diary Created',
         code: 201,
+        data: {
+          diary_id: diaryData.diary_id,
+          diary_emotion: diaryData.diary_emotion,
+          calendar_date: diaryData.calendar_date,
+        },
       })
     })
     .catch((err) => {
@@ -41,6 +46,20 @@ exports.getAllDiariesByAccToken = (req, res) => {
       return res
         .status(200)
         .send({ code: 200, message: 'Got all Diaries', data: allDiaries })
+    })
+  }
+}
+exports.getSingleDiaryByAccAndId = (req, res) => {
+  // console.log(req.query)
+  const accessToken = req.headers['authorization'].split('Bearer ')[1]
+  let decodedAcc = jwt.verify(accessToken, jwtSecret)
+  if (decodedAcc.data) {
+    Diary.findOne({
+      where: {
+        diary_id: req.params.id,
+      },
+    }).then((singleDiary) => {
+      console.log(singleDiary)
     })
   }
 }
