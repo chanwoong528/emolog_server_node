@@ -3,6 +3,7 @@ const {
   createUser,
   findOneUserByEmailLoginType,
   findOneUserByAcc,
+  newAccessTokenFromRefreshToken,
 } = require('../Service/userService')
 
 const router = new express.Router()
@@ -19,7 +20,9 @@ router.post('/', (req, res) => {
  * @body refreshToken
  * @return accessToken
  */
-router.post('/access-token', (req, res) => {})
+router.post('/access-token', (req, res) => {
+  newAccessTokenFromRefreshToken(req, res)
+})
 
 router.post('/login', (req, res) => {
   findOneUserByAcc(req, res)

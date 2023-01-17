@@ -36,7 +36,7 @@ exports.createDiary = (req, res) => {
 exports.getAllDiariesByAccToken = (req, res) => {
   const accessToken = req.headers['authorization'].split('Bearer ')[1]
   let decodedAcc = jwt.verify(accessToken, jwtSecret)
-  console.log(decodedAcc)
+  // console.log('service>>', decodedAcc)
   if (decodedAcc.data) {
     Diary.findAll({
       attributes: ['diary_id', 'diary_emotion', 'calendar_date'],
@@ -49,17 +49,74 @@ exports.getAllDiariesByAccToken = (req, res) => {
     })
   }
 }
-exports.getSingleDiaryByAccAndId = (req, res) => {
-  // console.log(req.query)
+exports.getLimitedNumberDiaries = (req, res) => {
   const accessToken = req.headers['authorization'].split('Bearer ')[1]
-  let decodedAcc = jwt.verify(accessToken, jwtSecret)
+  let decodedAcc = jwt.verify(accessToken, jwtSecret, (err) => {
+    if (err) {
+      console.log('service>>', err)
+    }
+  })
+  
   if (decodedAcc.data) {
-    Diary.findOne({
+    Diary.findAll({
+      attributes: [
+        'diary_id',
+        'calendar_date',
+        'diary_title',
+        'diary_emotion',
+        'diary_content',
+      ],
       where: {
-        diary_id: req.params.id,
+        author_id: decodedAcc.data,
       },
-    }).then((singleDiary) => {
-      console.log(singleDiary)
+    }).then((limitedDiaryData) => {
+      if (limitedDiaryData.length > 20) {
+        Diary.findAll({
+          attributes: [
+            'diary_id',
+            'calendar_date',
+            'diary_title',
+            'diary_emotion',
+            'diary_content',
+          ],
+          where: {
+            author_id: decodedAcc.data,
+            calendar_date: {
+              [Op.gt]: req.query.startDate,
+              [Op.lt]: req.query.endDate,
+            },
+          },
+        }).then((diary30) => {
+          //30 and up then slice from targetDate +-15
+          return res.status(200).send({
+            code: 200,
+            message: 'Got all Diaries',
+            data: diary30,
+          })
+        })
+      } else {
+        //30 and down just give all
+        return res.status(200).send({
+          code: 200,
+          message: 'Got all Diaries',
+          data: limitedDiaryData,
+        })
+      }
     })
   }
+}
+
+exports.getSingleDiaryByAccAndId = (req, res) => {
+  // console.log(req.query)
+  // const accessToken = req.headers['authorization'].split('Bearer ')[1]
+  // let decodedAcc = jwt.verify(accessToken, jwtSecret)
+  // if (decodedAcc.data) {
+  //   Diary.findOne({
+  //     where: {
+  //       diary_id: req.params.id,
+  //     },
+  //   }).then((singleDiary) => {
+  //     console.log(singleDiary)
+  //   })
+  // }
 }

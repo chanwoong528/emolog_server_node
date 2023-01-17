@@ -71,7 +71,7 @@ exports.findOneUserByAcc = (req, res) => {
       })
     }
   } catch (error) {
-      if (error.message === 'jwt expired') {
+    if (error.message === 'jwt expired') {
       let decodedRef = jwt.verify(req.body.refreshToken, jwtSecret)
       User.findOne({ where: { user_id: decodedRef.data } }).then((userData) => {
         return res.status(200).send({
@@ -122,4 +122,23 @@ exports.findOneUserByEmailLoginType = (req, res) => {
         .send({ message: 'No user exist in Our DB', code: 404 })
     }
   })
+}
+
+exports.newAccessTokenFromRefreshToken = (req, res) => {
+  try {
+    let decodedRef = jwt.verify(req.body.refreshToken, jwtSecret)
+    User.findOne({ where: { user_id: decodedRef.data } }).then((userData) => {
+      if (userData) {
+        return res.status(200).send({
+          message: 'user exist login',
+          code: 200,
+          data: generateTokens(userData),
+        })
+      }
+    })
+  } catch (error) {
+    return res
+      .status(403)
+      .send({ message: 'Refresh Token validation failed. Please Login again' })
+  }
 }
